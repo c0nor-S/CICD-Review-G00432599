@@ -47,11 +47,20 @@ Start from a **fresh copy of the starter template for your own exam group**, in 
 
 Describe **two or three important problems** in your original code. For each, explain what was wrong, which class or method you changed in the new project, and why the corrected approach works.
 
-**Problem and correction 1:**
+**Problem and correction 1: Entity and primary key**
+- **What was wrong:** In `BookingModel`, I put `@Id` and `@GeneratedValue` above `organiserName` instead of `id`, so the name became the primary key. There was no `roomId`, and `status` was just true/false. In the new project I also forgot `@Entity` at first, and the app wouldn't start ("Not a managed type").
+- **What I changed:** I moved `@Id` and `@GeneratedValue` above `id`, added `roomId` and `@Entity`, and made a `BookingStatus` enum with `ACTIVE`. The status field has `@Enumerated(EnumType.STRING)`.
+- **Why it works:** `@Id` attaches to whichever field comes next, so now `id` is the primary key and the database creates it. `@Entity` tells Spring the class is a database table, so the repository can use it. `EnumType.STRING` saves the status as the word "ACTIVE" instead of a number.
 
-**Problem and correction 2:**
+**Problem and correction 2: No Feign client and wrong capacity check**
+- **What was wrong:** I never made a Feign client, so my service never asked the Room Service about the room. My capacity check used a fixed number (30), looked at my own bookings, was the wrong way round, and returned 413.
+- **What I changed:** I added `RoomClient`, a Feign interface that calls the Room Service, and `RoomDto` to hold the room it sends back. In `BookingService.create()` I get the room first, then check if `attendeeCount` is bigger than `room.capacity()`.
+- **Why it works:** Only the Room Service knows each room's capacity, so the Booking Service has to ask it. If the room doesn't exist, Feign turns that into an error, which I catch and return as a 404. Too many attendees returns a 400 because the request is invalid. Test 2a shows the real room data: "Exceeds Capacity 24 Of Lab 201".
 
-**Problem and correction 3 (optional):**
+**Problem and correction 3: DTOs, saving and the controller**
+- **What was wrong:** `BookingResponse` called `getOrganiserName()`, but it's a record, so that method doesn't exist and the code didn't compile. It was also built from the request, not the saved booking. The request let the client send an `id`, nothing was saved, and there was no booking controller.
+- **What I changed:** I took `id` out of `BookingRequest` and added `roomId`. `BookingResponse.from()` now uses the saved `BookingModel`. I added `BookingController` with `POST /api/bookings` (returns 201) and `GET /api/bookings/{id}`, and used `@Valid` on the request.
+- **Why it works:** The database creates the id, so the client shouldn't send one. Building the response from the saved booking means it includes the new id and status. `@Valid` is what actually runs the validation rules, so bad input gets a 400 instead of being saved.
 
 ## 3. API testing and evidence
 
