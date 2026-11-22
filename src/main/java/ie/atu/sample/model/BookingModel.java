@@ -2,6 +2,7 @@ package ie.atu.sample.model;
 
 import jakarta.persistence.*;
 
+@Entity
 public class BookingModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
