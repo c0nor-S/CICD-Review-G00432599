@@ -114,10 +114,18 @@ Use Swagger UI or another HTTP client. For **at least four meaningful checks**, 
 ## 4. Reflection
 
 **What did I understand during the examination but struggle to implement?**
+- I knew the Booking Service had to get the room from the Room Service using Feign and check the capacity, but I never wrote the Feign client because I wasn't sure how to set it up.
+- Instead I tried to check capacity by counting bookings in my own database with a fixed number, which was wrong.
+- I knew that I needed request and response DTOs, but I mixed up the request and the entity, so my response didn't compile.
 
 **Which Spring Boot, JPA, validation, JPQL or OpenFeign concept became clearer after correcting my code? Give a specific example.**
+- How JPA annotations work became much clearer. In my exam I put `@Id` and `@GeneratedValue` above `organiserName`, because I didn't realise they attach to the field directly below them.
+- In the new project I also forgot `@Entity`, and the app wouldn't start, with "Not a managed type: BookingModel".
+- Reading the last `Caused by:` line showed me that without `@Entity`, Spring doesn't treat the class as a table, so the repository can't use it.
 
 **What will I do differently in my next coding test or API development task?**
+- I'll build in layers (entity, DTOs, Feign client, service, controller) and make sure it compiles after each step.
+- My exam code didn't compile at all, so even the parts I got right couldn't be tested. When I get an error, I'll read the last `Caused by:` line instead of guessing.
 
 ## Review lab assessment — 20 marks
 
