@@ -58,28 +58,45 @@ Describe **two or three important problems** in your original code. For each, ex
 Use Swagger UI or another HTTP client. For **at least four meaningful checks**, record the request/input, expected result, actual HTTP status/response, and pass/fail. Include unsuccessful cases; a running application alone is not enough.
 
 **Test 1 — successful booking request:**
-- Request / input:
-- Expected:
-- Actual HTTP status / body:
-- Pass / fail:
+- Request / input: POST /api/bookings `{ "roomId": 1, "organiserName": "conor", "attendeeCount": 5 }`
+- Expected: 201 Created with generated id and status ACTIVE
+- Actual HTTP status / body: 201 `{
+  "id": 1,
+  "organiserName": "conor",
+  "attendeeCount": 5,
+  "roomId": 1,
+  "status": "ACTIVE"
+  }`
+- Pass / fail: Pass
 
 **Test 2 — invalid input or excessive attendee count:**
 - Request / input:
-- Expected:
+    - 2a: POST /api/bookings `{ "roomId": 1, "organiserName": "conor", "attendeeCount": 999 }`
+    - 2b: POST /api/bookings `{ "roomId": 1, "organiserName": "", "attendeeCount": 5 }`
+- Expected: 400 Bad Request for both
 - Actual HTTP status / body:
-- Pass / fail:
+    - 2a: 400 — `"message": "Attendee Count 999 Exceeds Capacity 24 Of Lab 201"`
+    - 2b: 400 — `"Validation failed ... Error count: 2"` with `"Organiser Name Is Required"` and `"Organiser Must Be 2-60 Characters"` (empty string fails both @NotBlank and @Size)
+- Pass / fail: Pass
 
 **Test 3 — missing booking or room:**
 - Request / input:
-- Expected:
+    - 3a: POST /api/bookings `{ "roomId": 999, "organiserName": "conor", "attendeeCount": 5 }`
+    - 3b: GET /api/bookings/999
+- Expected: 404 Not Found for both
 - Actual HTTP status / body:
-- Pass / fail:
+    - 3a: 404 — `"message": "Room Not Found: 999"`
+    - 3b: 404 — `"message": "Booking Not Found: 999"`
+- Pass / fail: Pass
 
 **Test 4 — requirement specific to my group:**
 - Request / input:
-- Expected:
-- Actual HTTP status / body:
-- Pass / fail:
+    - Room Service (8082) and Booking Service (8081) both running
+    - POST /api/bookings in Test 1 used OpenFeign to get room 1; Test 2a showed the real capacity (24) and name (Lab 201) from the Room Service
+    - GET /api/bookings/1 with Room Service running, then again with Room Service stopped
+- Expected: 200 with the same booking both times, because GET reads from the Booking Service's own H2 database and doesn't call the Room Service
+- Actual HTTP status / body: 200 both times — `{ "id": 1, "organiserName": "conor", "attendeeCount": 5, "roomId": 1, "status": "ACTIVE" }`
+- Pass / fail: Pass
 
 **Group A:** Demonstrate `GET /api/bookings/search?roomName=...` using an exact room name, bookings ordered by attendee count descending, and an empty list for no matches. Add checks if necessary to show all three behaviours.
 
